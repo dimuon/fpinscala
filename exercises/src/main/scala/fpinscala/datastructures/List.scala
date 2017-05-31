@@ -73,17 +73,33 @@ object List { // `List` companion object. Contains functions for creating and wo
   }
 
   def init[A](l: List[A]): List[A] = {
-    def go(l2: List[A], res: List[A], a: A): List[A] = l2 match {
-      case Nil => res
-      case Cons(h, t) => go(t, append(res, List(a)), h)
+    @annotation.tailrec
+    def go(l: List[A], res: List[A]): List[A] = l match {
+      case Nil => sys.error("init with empty list")
+      case Cons(_, Nil) => res
+      case Cons(h, t) => go(t, append(res, List(h)))
     }
 
-    go(l, Nil,  )
+    go(l, Nil)
   }
 
-  def length[A](l: List[A]): Int = ???
+  def length[A](l: List[A]): Int = foldRight(l, 0)((_, acc) => acc + 1)
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  @annotation.tailrec
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+    case Nil => z
+    case Cons(h,t) => foldLeft(t, f(z, h))(f)
+  }
+
+  def sum3(ns: List[Int]) =
+    foldLeft(ns, 0)(_ + _)
+
+  def product3(ns: List[Double]) =
+    foldLeft(ns, 1.0)(_ * _)
+
+  def length3[A](l: List[A]): Int = foldLeft(l, 0)((acc, _) => acc + 1)
+
+  def reverse[A](l: List[A]): List[A] = foldLeft(l, Nil:List[A])((acc, a) => Cons(a, acc))
 
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
 }
