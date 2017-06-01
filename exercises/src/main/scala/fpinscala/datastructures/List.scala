@@ -37,12 +37,6 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(h,t) => Cons(h, append(t, a2))
     }
 
-  def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B = // Utility functions
-    as match {
-      case Nil => z
-      case Cons(x, xs) => f(x, foldRight(xs, z)(f))
-    }
-
   def sum2(ns: List[Int]) =
     foldRight(ns, 0)((x,y) => x + y)
 
@@ -85,10 +79,20 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def length[A](l: List[A]): Int = foldRight(l, 0)((_, acc) => acc + 1)
 
+  def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B = // Utility functions
+    as match {
+      case Nil => z
+      case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+    }
+
   @annotation.tailrec
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
     case Nil => z
     case Cons(h,t) => foldLeft(t, f(z, h))(f)
+  }
+
+  def foldRight2[A,B](as: List[A], z: B)(f: (A, B) => B): B = {
+    foldLeft(reverse(as), z)((a, b) => f(b, a))
   }
 
   def sum3(ns: List[Int]) =
@@ -101,5 +105,42 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def reverse[A](l: List[A]): List[A] = foldLeft(l, Nil:List[A])((acc, a) => Cons(a, acc))
 
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  def appendViaFoldRight[A](l: List[A], r: List[A]): List[A] =
+    foldRight(l, r)(Cons(_, _))
+
+  def concat[A](l: List[List[A]]): List[A] =
+    foldRight(l, Nil:List[A])(append)
+
+  def add1(l: List[Int]): List[Int] =
+    foldRight(l, Nil:List[Int])((a, b) => Cons(a + 1, b))
+
+  def doubleToString(l: List[Double]): List[String] =
+    foldRight(l, Nil:List[String])((a, b) => Cons(a.toString, b))
+
+  def map[A,B](l: List[A])(f: A => B): List[B] =
+    foldRight(l, Nil:List[B])((h, t) => Cons(f(h), t))
+
+  def map_2[A,B](l: List[A])(f: A => B): List[B] = {
+    val buf = new collection.mutable.ListBuffer[B]
+    def go(l: List[A]): Unit = l match {
+      case Nil => ()
+      case Cons(h,t) => buf += f(h); go(t)
+    }
+    go(l)
+    List(buf.toList: _*)
+  }
+
+  def filter[A](as: List[A])(f: A => Boolean): List[A] =
+    foldRight(as, Nil:List[A])((h, t) =>
+      if (f(h)) Cons(h, t) else t)
+
+  def filter_2[A](as: List[A])(f: A => Boolean): List[A] = {
+    val buf = new collection.mutable.ListBuffer[A]
+    def go(l: List[A]): Unit = l match {
+      case Nil => ()
+      case Cons(h,t) => if (f(h)) buf += h; go(t)
+    }
+    go(as)
+    List(buf.toList: _*)
+  }
 }
