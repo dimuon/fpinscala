@@ -162,13 +162,16 @@ object List { // `List` companion object. Contains functions for creating and wo
     case (Cons(h1,t1), Cons(h2,t2)) => Cons(f(h1,h2), zipWith(t1,t2)(f))
   }
 
-  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
-    def startWith(sup: List[A], sub: List[A]): Boolean = (sup, sub) match {
-      case (_, Nil) => true
-      case (Nil, _) => false
-      case (Cons(h1,t1), Cons(h2,t2)) => if (h1 == h2) startWith(t1, t2) else false
-    }
+  @annotation.tailrec
+  def startWith[A](sup: List[A], sub: List[A]): Boolean = (sup, sub) match {
+    case (_, Nil) => true
+    case (Nil, _) => false
+    case (Cons(h1,t1), Cons(h2,t2)) => if (h1 == h2) startWith(t1, t2) else false
+  }
 
-    
+  @annotation.tailrec
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = sup match {
+    case Nil => startWith(sup, sub)
+    case Cons(_,t) => if (startWith(sup, sub)) true else hasSubsequence(t, sub)
   }
 }
