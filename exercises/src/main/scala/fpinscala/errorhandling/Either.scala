@@ -34,7 +34,7 @@ object Either {
     es.foldRight[Either[E, List[B]]](Right(Nil))((a, r) => f(a).map2(r)(_ :: _))
 
   def sequence[E,A](es: List[Either[E,A]]): Either[E,List[A]] =
-//    traverse(es)(a => )
+    traverse(es)(a => a)
 
   def mean(xs: IndexedSeq[Double]): Either[String, Double] = 
     if (xs.isEmpty) 
