@@ -48,16 +48,45 @@ trait Stream[+A] {
     case _ => empty
   }
 
-  def drop(n: Int): Stream[A] = ???
+  @annotation.tailrec
+  final def drop(n: Int): Stream[A] = this match {
+    case Cons(_,t) if n > 0 => t().drop(n - 1)
+    case _ => this
+  }
 
-  def takeWhile(p: A => Boolean): Stream[A] = ???
+  def takeWhile(p: A => Boolean): Stream[A] = this match {
+    case Cons(h,t) if p(h()) => cons(h(), t() takeWhile p)
+    case _ => empty
+  }
 
-  def forAll(p: A => Boolean): Boolean = ???
+  def forAll(p: A => Boolean): Boolean =
+    foldRight(true)((a, b) => p(a) && b)
 
-  def headOption: Option[A] = ???
+  def takeWhile2(p: A => Boolean): Stream[A] =
+    foldRight(empty: Stream[A])((a, b) => if (p(a)) cons(a, b) else empty)
+
+  def headOption: Option[A] = this match {
+    case Empty => None
+    case Cons(h, t) => Some(h())
+  }
+
+  def headOption2: Option[A] =
+    foldRight[Option[A]](None)((a, _) => Some(a))
 
   // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
   // writing your own function signatures.
+
+  def map[B](f: A => B): Stream[B] =
+    foldRight(Empty: Stream[B])((a, b) => cons(f(a), b))
+
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(empty[A])((a, b) => if (f(a)) cons(a, b) else b)
+
+  def append[B >: A](s: Stream[B]): Stream[B] =
+    foldRight(s)((a, b) => cons(a,b))
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(empty[B])((a, b) => f(a) append b)
 
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
