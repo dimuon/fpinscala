@@ -111,7 +111,25 @@ object Stream {
   def constant[A](a: A): Stream[A] =
     cons(a, constant(a))
 
-  def from(n: Int): Stream[Int] = ???
+  def from(n: Int): Stream[Int] =
+    cons(n, from(n + 1))
+
+  def fibs: Stream[Int] = {
+    def f(n: Int): Int = n match {
+      case 0 => 0
+      case 1 => 1
+      case _ => f(n - 2) + f(n - 1)
+    }
+    def fi(n: Int): Stream[Int] =
+      cons(f(n), fi(n + 1))
+    fi(0)
+  }
+
+  def fibs2: Stream[Int] = {
+    def go(f0: Int, f1: Int): Stream[Int] =
+      cons(f0, go(f1, f0 + f1))
+    go(0, 1)
+  }
 
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
 }
