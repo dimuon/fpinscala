@@ -137,8 +137,8 @@ object Stream {
   }
 
   def unfoldViaMap[A, S](z: S)(f: S => Option[(A,S)]): Stream[A] =
-    f(z).map((p: (A,S)) => cons(p._1, unfoldViaMap(p._2)(f))).getOrElse(empty)
+    f(z).map((p: (A,S)) => cons(p._1, unfoldViaMap(p._2)(f))).getOrElse(empty[A])
 
   def unfoldViaFold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
-    f(z).fold(empty: Stream[A])((p: (A, S)) => cons(p._1, unfoldViaFold(p._2)(f)))
+    f(z).fold(empty[A])((p: (A, S)) => cons(p._1, unfoldViaFold(p._2)(f)))
 }
