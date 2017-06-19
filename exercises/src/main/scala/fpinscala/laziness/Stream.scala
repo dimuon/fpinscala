@@ -135,4 +135,10 @@ object Stream {
     case Some((a,s)) => cons(a, unfold(s)(f))
     case None => empty
   }
+
+  def unfoldViaMap[A, S](z: S)(f: S => Option[(A,S)]): Stream[A] =
+    f(z).map((p: (A,S)) => cons(p._1, unfoldViaMap(p._2)(f))).getOrElse(empty)
+
+  def unfoldViaFold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
+    f(z).fold(empty: Stream[A])((p: (A, S)) => cons(p._1, unfoldViaFold(p._2)(f)))
 }
