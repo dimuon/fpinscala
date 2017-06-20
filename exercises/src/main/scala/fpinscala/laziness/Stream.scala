@@ -141,4 +141,16 @@ object Stream {
 
   def unfoldViaFold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
     f(z).fold(empty[A])((p: (A, S)) => cons(p._1, unfoldViaFold(p._2)(f)))
+
+  def onesViaUnfold: Stream[Int] =
+    unfold(1)(_ => Some((1, 1)))
+
+  def constantViaUnfold[A](a: A): Stream[A] =
+    unfold(a)(_ => Some((a,a)))
+
+  def fromViaUnfold(n: Int): Stream[Int] =
+    unfold(n)(i => Some((i, i + 1)))
+
+  def fibsViaUnfold: Stream[Int] =
+    unfold((0,1))(p => Some(p._1, (p._2, p._1 + p._2)))
 }
