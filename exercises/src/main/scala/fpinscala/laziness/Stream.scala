@@ -65,8 +65,11 @@ trait Stream[+A] {
     case _ => empty
   }
 
-//  def takeWhileViaUnfold(p: A => Boolean): Stream[A] =
-//    unfold((true, this))(p => p._2 match {
+  def takeWhileViaUnfold(p: A => Boolean): Stream[A] =
+    unfold(this) {
+      case Cons(h,t) if p(h()) => Some(h(), t())
+      case _ => None
+    }
 
   def forAll(p: A => Boolean): Boolean =
     foldRight(true)((a, b) => p(a) && b)
@@ -104,6 +107,20 @@ trait Stream[+A] {
     foldRight(empty[B])((a, b) => f(a) append b)
 
   def startsWith[B](s: Stream[B]): Boolean = ???
+
+  def zipWith[B,C](s: Stream[B])(f: (A,B) => C): Stream[C] =
+    unfold((this, s)) {
+      case (Cons(h1,t1), Cons(h2,t2)) => Some(f(h1(),h2()), (t1(),t2()))
+      case _ => None
+    }
+
+  def zipAll[B](s: Stream[B]): Stream[(Option[A], Option[B])] =
+    unfold((this, s)) {
+      case (Empty, Empty) => None
+      case (Cons(h,t), Empty) => Some((Some(h()), None), (t(), empty))
+      case (Empty, Cons(h,t)) => Some((None, Some(h())), (empty, t()))
+      case (Cons(h1,t1), Cons(h2,t2)) => Some((Some(h1()), Some(h2())), (t1(), t2()))
+    }
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
