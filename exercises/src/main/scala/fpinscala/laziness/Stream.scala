@@ -106,7 +106,19 @@ trait Stream[+A] {
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(empty[B])((a, b) => f(a) append b)
 
-  def startsWith[B](s: Stream[B]): Boolean = ???
+  def startsWith[B](s: Stream[B]): Boolean =
+    zipAll(s).takeWhile(!_._2.isEmpty).forAll {
+      case (a,b) => a == b
+    }
+
+  def tails: Stream[Stream[A]] =
+    unfold(this) (s => s match {
+      case Empty => None
+      case Cons(_,t) => Some(s, t())
+    }) append Stream(empty)
+
+  def hasSubsequence[A](s: Stream[A]): Boolean =
+    tails exists (_ startsWith s)
 
   def zipWith[B,C](s: Stream[B])(f: (A,B) => C): Stream[C] =
     unfold((this, s)) {
@@ -116,10 +128,10 @@ trait Stream[+A] {
 
   def zipAll[B](s: Stream[B]): Stream[(Option[A], Option[B])] =
     unfold((this, s)) {
-      case (Empty, Empty) => None
       case (Cons(h,t), Empty) => Some((Some(h()), None), (t(), empty))
       case (Empty, Cons(h,t)) => Some((None, Some(h())), (empty, t()))
       case (Cons(h1,t1), Cons(h2,t2)) => Some((Some(h1()), Some(h2())), (t1(), t2()))
+      case _ => None
     }
 }
 case object Empty extends Stream[Nothing]
