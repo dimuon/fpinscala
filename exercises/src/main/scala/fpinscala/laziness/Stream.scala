@@ -117,6 +117,9 @@ trait Stream[+A] {
       case Cons(_,t) => Some(s, t())
     }) append Stream(empty)
 
+  def scanRight[B](z: B)(f: (A,B) => B): Stream[B] =
+    tails.flatMap(s => s.toList.foldRight(z)(f))
+
   def hasSubsequence[A](s: Stream[A]): Boolean =
     tails exists (_ startsWith s)
 
