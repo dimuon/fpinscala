@@ -177,6 +177,12 @@ object State {
         ((s.coins, s.candies), s))
   }
 
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] =
+  def simulateMachine2(inputs: List[Input]): State[Machine, (Int, Int)] =
     sequence(inputs.map(simulate(_))).map(_.last)
+
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = for {
+    _ <- sequence(inputs.map(simulate(_)))
+    s <- get_
+  } yield (s.coins, s.candies)
+
 }
