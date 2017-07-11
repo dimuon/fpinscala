@@ -76,17 +76,33 @@ object Par {
   def asyncF[A,B](f: A => B): A => Par[B] =
     a => lazyUnit(f(a))
 
+  def sequence[A](ps: List[Par[A]]): Par[List[A]] =
+    ps.foldRight[Par[List[A]]](unit(List()))((par, parl) => map2(par, parl)(_ :: _))
+
+  def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] = {
+    val ls: List[Par[List[A]]] =
+      as.map(asyncF((a: A) => if (f(a)) List(a) else List()))
+    map(sequence(ls))(_.flatten)
+  }
+
+  def map3[A,B,C,D](pa: Par[A], pb: Par[B], pc: Par[C])(f: (A,B,C) => D): Par[D] = {
+    val x = map2(pa, pb)((a, b) => f(a,b, _: C))
+    map2(x, pc)((g, c) => g(c))
+  }
+
   class ParOps[A](p: Par[A]) {
-
-
   }
 }
 
 object Examples {
   import Par._
-  def sum(ints: IndexedSeq[Int]): Int = // `IndexedSeq` is a superclass of random-access sequences like `Vector` in the standard library. Unlike lists, these sequences provide an efficient `splitAt` method for dividing them into two parts at a particular index.
+  def sum(ints: IndexedSeq[Int]): Int =
+  // `IndexedSeq` is a superclass of random-access sequences like `Vector` in the standard library.
+  // Unlike lists, these sequences provide an efficient `splitAt` method for dividing them into two parts at
+  // a particular index.
     if (ints.size <= 1)
-      ints.headOption getOrElse 0 // `headOption` is a method defined on all collections in Scala. We saw this function in chapter 3.
+      ints.headOption getOrElse 0
+    // `headOption` is a method defined on all collections in Scala.// We saw this function in chapter 3.
     else { 
       val (l,r) = ints.splitAt(ints.length/2) // Divide the sequence in half using the `splitAt` function.
       sum(l) + sum(r) // Recursively sum both halves and add the results together.
