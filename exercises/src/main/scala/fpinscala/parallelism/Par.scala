@@ -89,6 +89,9 @@ object Par {
 
   class ParOps[A](p: Par[A]) {
   }
+
+  def choiceN[A](n: Par[Int])(choices: List[Par[A]]): Par[A] =
+    es => run(es)(choices(run(es)(n).get))
 }
 
 object Examples {
