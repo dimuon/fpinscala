@@ -112,7 +112,7 @@ object Examples {
 
 object Par2 {
   sealed trait Future[A] {
-    protected[parallelism] def apply(cb: (=> A) => Unit): Unit
+    protected[parallelism] def apply(cb: A => Unit): Unit
   }
 
   type Par[A] = ExecutorService => Future[A]
